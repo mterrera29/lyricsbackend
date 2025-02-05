@@ -11,24 +11,25 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// Configuración de CORS mejorada
 const corsOptions = {
-  origin: "*",
-  optionsSuccessStatus: 200
-}
+  origin: process.env.FRONTEND_URL || "*", // Asegurar que solo el frontend permitido acceda
+  methods: "GET,POST,PUT,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
+  credentials: true, // Permitir cookies/tokens si usas autenticación
+  optionsSuccessStatus: 204,
+};
 
 app.use(cors(corsOptions));
-
+app.options("*", cors(corsOptions)); // Manejar preflight requests
 
 // Middleware para parsear JSON
 app.use(express.json());
 
-// Agregar una ruta para manejar las solicitudes OPTIONS
-
-
-
-// Rutas de canciones (sin verificación de token)
+// Rutas de canciones
 app.use("/users", songRoutes);
 
-// Puerto y arranque del servidor
+// Puerto dinámico para Railway
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor corriendo en el puerto ${PORT}`));
