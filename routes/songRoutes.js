@@ -1,6 +1,5 @@
 import express from "express";
 import { getSongs, addSong, deleteSong, editedSong, getSong, getSongos } from "../controllers/songController.js";
-
 const router = express.Router();
 
 router.get("/:userId/songs", getSongs);

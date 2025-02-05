@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import songRoutes from "./routes/songRoutes.js";
+import verifyToken from "./middlewares/verifyToken.js";
 
 // Cargar variables de entorno
 dotenv.config();
@@ -28,7 +29,7 @@ app.options("*", cors(corsOptions)); // Manejar preflight requests
 app.use(express.json());
 
 // Rutas de canciones
-app.use("/users", songRoutes);
+app.use("/users",verifyToken, songRoutes);
 
 // Puerto dinámico para Railway
 const PORT = process.env.PORT || 5000;
