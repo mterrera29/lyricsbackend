@@ -14,6 +14,21 @@ export const getSongs = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getList = async (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findOne({ _id: userId });
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    res.json(user.lists);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const getSongos = async (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.json({"hola":"hola"})
@@ -27,10 +42,29 @@ export const addSong = async (req, res) => {
 
     let user = await User.findOne({ _id: userId });
     if (!user) {
-      user = new User({ _id: userId, email: "", name: "", songs: [] });
+      user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
     }
 
     user.songs.push(newSong);
+    await user.save();
+
+    res.status(201).json(newSong);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const addList = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const newList = req.body; 
+
+    let user = await User.findOne({ _id: userId });
+    if (!user) {
+      user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
+    }
+
+    user.lists.push(newList);
     await user.save();
 
     res.status(201).json(newSong);
