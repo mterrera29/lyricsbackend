@@ -71,10 +71,14 @@ export const addList = async (req, res) => {
       user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
     }
 
+    // 🔥 Esta línea es clave: asegura que user.lists esté definido antes de usar push
+    user.lists = user.lists || [];
 
     // Crear nueva lista
     const list = { id, name, songIds: [] };
     user.lists.push(list);
+
+    // Guardar el usuario actualizado en la base de datos
     await user.save();
 
     console.log("✅ Lista agregada correctamente:", list);
