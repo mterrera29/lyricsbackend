@@ -59,22 +59,35 @@ export const addList = async (req, res) => {
     const { userId } = req.params;
     const { name, id } = req.body;
 
+    console.log("📌 Recibida solicitud para agregar lista");
+    console.log("🔹 userId:", userId);
+    console.log("🔹 name:", name);
+    console.log("🔹 id:", id);
+
     let user = await User.findOne({ _id: userId });
+
     if (!user) {
+      console.log("⚠️ Usuario no encontrado, creando nuevo usuario...");
       user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
     }
 
-    const list = { id, name, songIds: [] }
+    // Verificar si `lists` está inicializado
+    if (!user.lists) {
+      console.log("⚠️ `lists` no encontrado en el usuario, inicializando...");
+      user.lists = [];
+    }
 
+    // Crear nueva lista
+    const list = { id, name, songIds: [] };
     user.lists.push(list);
     await user.save();
 
+    console.log("✅ Lista agregada correctamente:", list);
     res.status(201).json(list);
   } catch (error) {
+    console.error("❌ Error en el backend:", error.message);
     res.status(500).json({ error: error.message });
   }
-
-  res.status(201).json(list);
 };
 
 // Eliminar una canción de un usuario
