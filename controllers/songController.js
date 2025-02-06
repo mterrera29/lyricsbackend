@@ -71,11 +71,6 @@ export const addList = async (req, res) => {
       user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
     }
 
-    // Verificar si `lists` está inicializado
-    if (!user.lists) {
-      console.log("⚠️ `lists` no encontrado en el usuario, inicializando...");
-      user.lists = [];
-    }
 
     // Crear nueva lista
     const list = { id, name, songIds: [] };
