@@ -66,15 +66,15 @@ export const addList = async (req, res) => {
 
     const list = { id, name, songIds: [] }
 
-    user.lists.push(newList);
+    user.lists.push(list);
     await user.save();
 
-    res.status(201).json(newSong);
+    res.status(201).json(list);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 
-  res.status(201).json(newList);
+  res.status(201).json(list);
 };
 
 // Eliminar una canción de un usuario
