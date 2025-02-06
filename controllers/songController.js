@@ -57,12 +57,14 @@ export const addSong = async (req, res) => {
 export const addList = async (req, res) => {
   try {
     const { userId } = req.params;
-    const newList = req.body; 
+    const { name, id } = req.body;
 
     let user = await User.findOne({ _id: userId });
     if (!user) {
       user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
     }
+
+    const list = { id, name, songIds: [] }
 
     user.lists.push(newList);
     await user.save();
@@ -71,6 +73,8 @@ export const addList = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+
+  res.status(201).json(newList);
 };
 
 // Eliminar una canción de un usuario
