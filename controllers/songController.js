@@ -59,21 +59,14 @@ export const addList = async (req, res) => {
     const { userId } = req.params;
     const { name, id } = req.body;
 
-    console.log("📌 Recibida solicitud para agregar lista");
-    console.log("🔹 userId:", userId);
-    console.log("🔹 name:", name);
-    console.log("🔹 id:", id);
-
     let user = await User.findOne({ _id: userId });
 
     if (!user) {
-      console.log("⚠️ Usuario no encontrado, creando nuevo usuario...");
       user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
     }
 
     // Verificar si `lists` está inicializado
     if (!user.lists) {
-      console.log("⚠️ `lists` no encontrado en el usuario, inicializando...");
       user.lists = [];
     }
 
