@@ -177,3 +177,32 @@ export const addSongToList = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getListSongs = async (req, res) => {
+  try {
+    const { userId, listId } = req.params;
+
+    // Buscar el usuario en la base de datos
+    const user = await User.findById(userId).populate("songs");
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    // Buscar la lista dentro del usuario
+    const list = user.lists.find((l) => l.id === listId);
+
+    if (!list) {
+      return res.status(404).json({ error: "Lista no encontrada" });
+    }
+
+    // Filtrar las canciones usando los songIds guardados en la lista
+    const songs = user.songs.filter((song) => list.songIds.includes(song.id));
+
+    // Enviar la respuesta con todos los datos de cada canción
+    res.json(songs);
+  } catch (error) {
+    console.error("Error obteniendo canciones de la lista:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
