@@ -139,3 +139,41 @@ export const getSong = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const addSongToList = async (req, res) => {
+  try {
+    const { userId, listId } = req.params;
+    const { songId } = req.body;
+
+    console.log("📌 Recibida solicitud para agregar canción a lista");
+    console.log("🔹 userId:", userId);
+    console.log("🔹 listId:", listId);
+    console.log("🔹 songId:", songId);
+
+    // Buscar usuario
+    let user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    // Buscar la lista dentro del usuario
+    const list = user.lists.find(list => list.id === listId);
+    if (!list) return res.status(404).json({ message: "Lista no encontrada" });
+
+    // Verificar si la canción ya está en la lista
+    if (list.songIds.includes(songId)) {
+      return res.status(400).json({ message: "La canción ya está en la lista" });
+    }
+
+    // Agregar la canción a la lista
+    list.songIds.push(songId);
+
+    // Notificar a MongoDB que `lists` cambió
+    user.markModified("lists");
+    await user.save();
+
+    console.log("✅ Canción agregada correctamente a la lista");
+    res.status(200).json(list);
+  } catch (error) {
+    console.error("❌ Error en el backend:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
