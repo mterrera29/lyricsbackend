@@ -200,7 +200,7 @@ export const getListSongs = async (req, res) => {
     const songs = user.songs.filter((song) => list.songIds.includes(song.id));
 
     // Enviar la respuesta con todos los datos de cada canción
-    res.json(songs);
+    res.json({songs:songs, list:list});
   } catch (error) {
     console.error("Error obteniendo canciones de la lista:", error);
     res.status(500).json({ error: error.message });
