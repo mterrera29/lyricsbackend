@@ -220,3 +220,26 @@ export const deleteList = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const updateListOrder = async (req, res) => {
+  try {
+    const { userId, listId } = req.params;
+    const { newOrder } = req.body; // Array con el nuevo orden de canciones
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    const list = user.lists.find((list) => list.id === listId);
+    if (!list) return res.status(404).json({ error: "Lista no encontrada" });
+
+    // 🔄 Reorganizamos las canciones en la lista según el nuevo orden
+    list.songs = newOrder.map((songId) =>
+      list.songs.find((song) => song.id === songId)
+    );
+
+    await user.save();
+    res.status(200).json({ message: "Orden actualizado correctamente" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
