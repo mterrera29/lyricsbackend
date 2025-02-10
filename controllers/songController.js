@@ -205,6 +205,7 @@ export const getListSongs = async (req, res) => {
 export const deleteList = async (req, res) => {
   try {
     const { userId, listId } = req.params;
+    console.log(userId, listId)
 
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId },
