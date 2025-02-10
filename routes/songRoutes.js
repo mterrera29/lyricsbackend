@@ -13,6 +13,5 @@ router.get("/:userId/songs/:songId", getSong);
 router.post("/:userId/lists/:listId/songs", addSongToList);
 router.get("/:userId/lists/:listId/songs", getListSongs);
 router.delete("/:userId/lists/:listId", deleteList);
-router.put("/users/:userId/lists/:listId/updateOrder", updateListOrder);
 
 export default router;
