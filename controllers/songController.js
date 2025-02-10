@@ -145,11 +145,6 @@ export const addSongToList = async (req, res) => {
     const { userId, listId } = req.params;
     const { songId } = req.body;
 
-    console.log("📌 Recibida solicitud para agregar canción a lista");
-    console.log("🔹 userId:", userId);
-    console.log("🔹 listId:", listId);
-    console.log("🔹 songId:", songId);
-
     // Buscar usuario
     let user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
@@ -203,6 +198,24 @@ export const getListSongs = async (req, res) => {
     res.json({songs:songs, list:list});
   } catch (error) {
     console.error("Error obteniendo canciones de la lista:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteList = async (req, res) => {
+  try {
+    const { userId, listId } = req.params;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      { $pull: { lists: { id: listId } } }, // Elimina la lista con ese ID
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    res.json({ message: "Lista eliminada correctamente", lists: updatedUser.lists });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };

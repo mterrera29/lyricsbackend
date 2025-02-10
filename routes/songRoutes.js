@@ -1,5 +1,5 @@
 import express from "express";
-import { getSongs, addSong, deleteSong, editedSong, getSong, getSongos, addList, getList, addSongToList, getListSongs } from "../controllers/songController.js";
+import { getSongs, addSong, deleteSong, editedSong, getSong, getSongos, addList, getList, addSongToList, getListSongs, deleteList } from "../controllers/songController.js";
 const router = express.Router();
 
 router.get("/:userId/songs", getSongs);
@@ -12,5 +12,6 @@ router.put("/:userId/songs/:songId", editedSong);
 router.get("/:userId/songs/:songId", getSong);
 router.post("/:userId/lists/:listId/songs", addSongToList);
 router.get("/:userId/lists/:listId/songs", getListSongs);
+router.delete("/:userId/lists/:listId", deleteList);
 
 export default router;
