@@ -208,7 +208,7 @@ export const deleteList = async (req, res) => {
     console.log(userId, listId)
 
     const updatedUser = await User.findOneAndUpdate(
-      { id: userId },
+      { _id: userId },
       { $pull: { lists: { id: listId } } }, // Elimina la lista con ese ID
       { new: true }
     );
