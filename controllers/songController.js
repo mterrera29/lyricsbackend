@@ -205,16 +205,18 @@ export const getListSongs = async (req, res) => {
 export const deleteList = async (req, res) => {
   try {
     const { userId, listId } = req.params;
+    console.log(userId, listId)
 
-    const user = await User.findOne({ _id: userId });
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      { $pull: { lists: { id: listId } } }, // Elimina la lista con ese ID
+      { new: true }
+    );
 
-    user.lists = user.lists.filter(list => list.id !== listId); // Filtra la lista
-    await user.save(); // Guarda el cambio en la base de datos
+    if (!updatedUser) return res.status(404).json({ message: "Usuario no encontrado" });
 
-    res.json({ message: "Lista eliminada correctamente", lists: user.lists });
+    res.json({ message: "Lista eliminada correctamente", lists: updatedUser.lists });
   } catch (error) {
-    console.error("Error eliminando lista:", error);
     res.status(500).json({ error: error.message });
   }
 };
