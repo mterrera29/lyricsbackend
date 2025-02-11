@@ -220,3 +220,35 @@ export const deleteList = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const removeSongFromList = async (req, res) => {
+  try {
+    const { userId, listId, songId } = req.params; // Ahora songId viene de los params
+
+    // Buscar usuario
+    let user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+
+    // Buscar la lista dentro del usuario
+    const list = user.lists.find(list => list.id === listId);
+    if (!list) return res.status(404).json({ message: "Lista no encontrada" });
+
+    // Verificar si la canción está en la lista
+    if (!list.songIds.includes(songId)) {
+      return res.status(400).json({ message: "La canción no está en la lista" });
+    }
+
+    // Eliminar la canción de la lista
+    list.songIds = list.songIds.filter(id => id !== songId);
+
+    // Notificar a MongoDB que `lists` cambió
+    user.markModified("lists");
+    await user.save();
+
+    console.log("✅ Canción eliminada correctamente de la lista");
+    res.status(200).json({ message: "Canción eliminada", list });
+  } catch (error) {
+    console.error("❌ Error en el backend:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
