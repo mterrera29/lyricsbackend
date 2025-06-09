@@ -31,7 +31,6 @@ app.use(
   })
 );
 
-app.use(express.json());
 //app.options('*', cors(corsOptions)); // Manejar preflight requests
 
 // Middleware para parsear JSON
