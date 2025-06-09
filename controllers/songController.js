@@ -1,24 +1,15 @@
 import User from '../models/userModel.js';
 
-// Función auxiliar para CORS
-const setCORSHeaders = (res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET, POST, PUT, DELETE, OPTIONS'
-  );
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-};
-
+// Obtener todas las canciones de un usuario
 export const getSongs = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
+  res.header('Access-Control-Allow-Origin', '*');
   try {
     const { userId } = req.params;
+
     const user = await User.findOne({ _id: userId });
     if (!user)
       return res.status(404).json({ message: 'Usuario no encontrado' });
+
     res.json(user.songs);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -26,14 +17,14 @@ export const getSongs = async (req, res) => {
 };
 
 export const getList = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
+  res.header('Access-Control-Allow-Origin', '*');
   try {
     const { userId } = req.params;
+
     const user = await User.findOne({ _id: userId });
     if (!user)
       return res.status(404).json({ message: 'Usuario no encontrado' });
+
     res.json(user.lists);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -41,18 +32,15 @@ export const getList = async (req, res) => {
 };
 
 export const getSongos = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  res.header('Access-Control-Allow-Origin', '*');
   res.json({ hola: 'hola' });
 };
 
+// Agregar una canción a un usuario (usando el id que viene del frontend)
 export const addSong = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId } = req.params;
-    const newSong = req.body;
+    const newSong = req.body; // Se asume que `id` ya viene en `req.body`
 
     let user = await User.findOne({ _id: userId });
     if (!user) {
@@ -67,6 +55,7 @@ export const addSong = async (req, res) => {
 
     user.songs.push(newSong);
     await user.save();
+
     res.status(201).json(newSong);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -74,14 +63,12 @@ export const addSong = async (req, res) => {
 };
 
 export const addList = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId } = req.params;
     const { name, id } = req.body;
 
     let user = await User.findOne({ _id: userId });
+
     if (!user) {
       user = new User({
         _id: userId,
@@ -93,8 +80,11 @@ export const addList = async (req, res) => {
     }
 
     user.lists = user.lists || [];
+
+    // Crear nueva lista
     const list = { id, name, songIds: [] };
     user.lists.push(list);
+
     await user.save();
 
     console.log('✅ Lista agregada correctamente:', list);
@@ -105,20 +95,20 @@ export const addList = async (req, res) => {
   }
 };
 
+// Eliminar una canción de un usuario
 export const deleteSong = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId, songId } = req.params;
+
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId },
-      { $pull: { songs: { id: songId } } },
+      { $pull: { songs: { id: songId } } }, // Elimina la canción con ese ID
       { new: true }
     );
 
     if (!updatedUser)
       return res.status(404).json({ message: 'Usuario no encontrado' });
+
     res.json({
       message: 'Canción eliminada correctamente',
       songs: updatedUser.songs,
@@ -128,17 +118,15 @@ export const deleteSong = async (req, res) => {
   }
 };
 
+// Editar una canción de un usuario
 export const editedSong = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId, songId } = req.params;
     const updatedSongData = req.body;
 
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId, 'songs.id': songId },
-      { $set: { 'songs.$': updatedSongData } },
+      { $set: { 'songs.$': updatedSongData } }, // Se actualiza sin sobrescribir el id
       { new: true }
     );
 
@@ -155,12 +143,11 @@ export const editedSong = async (req, res) => {
   }
 };
 
+// Obtener una canción específica de un usuario
 export const getSong = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId, songId } = req.params;
+
     const user = await User.findOne({ _id: userId });
     if (!user)
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -176,27 +163,30 @@ export const getSong = async (req, res) => {
 };
 
 export const addSongToList = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId, listId } = req.params;
     const { songId } = req.body;
 
+    // Buscar usuario
     let user = await User.findById(userId);
     if (!user)
       return res.status(404).json({ message: 'Usuario no encontrado' });
 
+    // Buscar la lista dentro del usuario
     const list = user.lists.find((list) => list.id === listId);
     if (!list) return res.status(404).json({ message: 'Lista no encontrada' });
 
+    // Verificar si la canción ya está en la lista
     if (list.songIds.includes(songId)) {
       return res
         .status(400)
         .json({ message: 'La canción ya está en la lista' });
     }
 
+    // Agregar la canción a la lista
     list.songIds.push(songId);
+
+    // Notificar a MongoDB que `lists` cambió
     user.markModified('lists');
     await user.save();
 
@@ -209,19 +199,27 @@ export const addSongToList = async (req, res) => {
 };
 
 export const getListSongs = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId, listId } = req.params;
+
+    // Buscar el usuario en la base de datos
     const user = await User.findById(userId).populate('songs');
 
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
 
+    // Buscar la lista dentro del usuario
     const list = user.lists.find((l) => l.id === listId);
-    if (!list) return res.status(404).json({ error: 'Lista no encontrada' });
 
+    if (!list) {
+      return res.status(404).json({ error: 'Lista no encontrada' });
+    }
+
+    // Filtrar las canciones usando los songIds guardados en la lista
     const songs = user.songs.filter((song) => list.songIds.includes(song.id));
+
+    // Enviar la respuesta con todos los datos de cada canción
     res.json({ songs: songs, list: list });
   } catch (error) {
     console.error('Error obteniendo canciones de la lista:', error);
@@ -230,15 +228,13 @@ export const getListSongs = async (req, res) => {
 };
 
 export const deleteList = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
     const { userId, listId } = req.params;
+    console.log(userId, listId);
 
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId },
-      { $pull: { lists: { id: listId } } },
+      { $pull: { lists: { id: listId } } }, // Elimina la lista con ese ID
       { new: true }
     );
 
@@ -255,26 +251,29 @@ export const deleteList = async (req, res) => {
 };
 
 export const removeSongFromList = async (req, res) => {
-  setCORSHeaders(res);
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
   try {
-    const { userId, listId, songId } = req.params;
+    const { userId, listId, songId } = req.params; // Ahora songId viene de los params
 
+    // Buscar usuario
     let user = await User.findById(userId);
     if (!user)
       return res.status(404).json({ message: 'Usuario no encontrado' });
 
+    // Buscar la lista dentro del usuario
     const list = user.lists.find((list) => list.id === listId);
     if (!list) return res.status(404).json({ message: 'Lista no encontrada' });
 
+    // Verificar si la canción está en la lista
     if (!list.songIds.includes(songId)) {
       return res
         .status(400)
         .json({ message: 'La canción no está en la lista' });
     }
 
+    // Eliminar la canción de la lista
     list.songIds = list.songIds.filter((id) => id !== songId);
+
+    // Notificar a MongoDB que `lists` cambió
     user.markModified('lists');
     await user.save();
 
