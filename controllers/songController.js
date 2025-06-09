@@ -1,14 +1,24 @@
-import User from "../models/userModel.js";
+import User from '../models/userModel.js';
 
-// Obtener todas las canciones de un usuario
+// Función auxiliar para CORS
+const setCORSHeaders = (res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, DELETE, OPTIONS'
+  );
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+};
+
 export const getSongs = async (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId } = req.params;
-
     const user = await User.findOne({ _id: userId });
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-
+    if (!user)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     res.json(user.songs);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -16,13 +26,14 @@ export const getSongs = async (req, res) => {
 };
 
 export const getList = async (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId } = req.params;
-
     const user = await User.findOne({ _id: userId });
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-
+    if (!user)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     res.json(user.lists);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -30,24 +41,32 @@ export const getList = async (req, res) => {
 };
 
 export const getSongos = async (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.json({"hola":"hola"})
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  res.json({ hola: 'hola' });
 };
 
-// Agregar una canción a un usuario (usando el id que viene del frontend)
 export const addSong = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId } = req.params;
-    const newSong = req.body; // Se asume que `id` ya viene en `req.body`
+    const newSong = req.body;
 
     let user = await User.findOne({ _id: userId });
     if (!user) {
-      user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
+      user = new User({
+        _id: userId,
+        email: '',
+        name: '',
+        songs: [],
+        lists: [],
+      });
     }
 
     user.songs.push(newSong);
     await user.save();
-
     res.status(201).json(newSong);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -55,84 +74,100 @@ export const addSong = async (req, res) => {
 };
 
 export const addList = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId } = req.params;
     const { name, id } = req.body;
 
     let user = await User.findOne({ _id: userId });
-
     if (!user) {
-      user = new User({ _id: userId, email: "", name: "", songs: [], lists: [] });
+      user = new User({
+        _id: userId,
+        email: '',
+        name: '',
+        songs: [],
+        lists: [],
+      });
     }
-    
-    user.lists = user.lists || [];
 
-    // Crear nueva lista
+    user.lists = user.lists || [];
     const list = { id, name, songIds: [] };
     user.lists.push(list);
-
     await user.save();
 
-    console.log("✅ Lista agregada correctamente:", list);
+    console.log('✅ Lista agregada correctamente:', list);
     res.status(201).json(list);
   } catch (error) {
-    console.error("❌ Error en el backend:", error.message);
+    console.error('❌ Error en el backend:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
-// Eliminar una canción de un usuario
 export const deleteSong = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId, songId } = req.params;
-
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId },
-      { $pull: { songs: { id: songId } } }, // Elimina la canción con ese ID
+      { $pull: { songs: { id: songId } } },
       { new: true }
     );
 
-    if (!updatedUser) return res.status(404).json({ message: "Usuario no encontrado" });
-
-    res.json({ message: "Canción eliminada correctamente", songs: updatedUser.songs });
+    if (!updatedUser)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    res.json({
+      message: 'Canción eliminada correctamente',
+      songs: updatedUser.songs,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Editar una canción de un usuario
 export const editedSong = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId, songId } = req.params;
     const updatedSongData = req.body;
 
     const updatedUser = await User.findOneAndUpdate(
-      { _id: userId, "songs.id": songId },
-      { $set: { "songs.$": updatedSongData } }, // Se actualiza sin sobrescribir el id
+      { _id: userId, 'songs.id': songId },
+      { $set: { 'songs.$': updatedSongData } },
       { new: true }
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "Usuario o canción no encontrados" });
+      return res
+        .status(404)
+        .json({ message: 'Usuario o canción no encontrados' });
     }
 
-    const updatedSong = updatedUser.songs.find(song => song.id === songId);
+    const updatedSong = updatedUser.songs.find((song) => song.id === songId);
     res.status(200).json(updatedSong);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// Obtener una canción específica de un usuario
 export const getSong = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId, songId } = req.params;
-
     const user = await User.findOne({ _id: userId });
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!user)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
 
-    const song = user.songs.find(song => song.id === songId);
-    if (!song) return res.status(404).json({ message: "Canción no encontrada" });
+    const song = user.songs.find((song) => song.id === songId);
+    if (!song)
+      return res.status(404).json({ message: 'Canción no encontrada' });
 
     res.json(song);
   } catch (error) {
@@ -141,114 +176,112 @@ export const getSong = async (req, res) => {
 };
 
 export const addSongToList = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId, listId } = req.params;
     const { songId } = req.body;
 
-    // Buscar usuario
     let user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!user)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
 
-    // Buscar la lista dentro del usuario
-    const list = user.lists.find(list => list.id === listId);
-    if (!list) return res.status(404).json({ message: "Lista no encontrada" });
+    const list = user.lists.find((list) => list.id === listId);
+    if (!list) return res.status(404).json({ message: 'Lista no encontrada' });
 
-    // Verificar si la canción ya está en la lista
     if (list.songIds.includes(songId)) {
-      return res.status(400).json({ message: "La canción ya está en la lista" });
+      return res
+        .status(400)
+        .json({ message: 'La canción ya está en la lista' });
     }
 
-    // Agregar la canción a la lista
     list.songIds.push(songId);
-
-    // Notificar a MongoDB que `lists` cambió
-    user.markModified("lists");
+    user.markModified('lists');
     await user.save();
 
-    console.log("✅ Canción agregada correctamente a la lista");
+    console.log('✅ Canción agregada correctamente a la lista');
     res.status(200).json(list);
   } catch (error) {
-    console.error("❌ Error en el backend:", error.message);
+    console.error('❌ Error en el backend:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
 export const getListSongs = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId, listId } = req.params;
+    const user = await User.findById(userId).populate('songs');
 
-    // Buscar el usuario en la base de datos
-    const user = await User.findById(userId).populate("songs");
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
-
-    // Buscar la lista dentro del usuario
     const list = user.lists.find((l) => l.id === listId);
+    if (!list) return res.status(404).json({ error: 'Lista no encontrada' });
 
-    if (!list) {
-      return res.status(404).json({ error: "Lista no encontrada" });
-    }
-
-    // Filtrar las canciones usando los songIds guardados en la lista
     const songs = user.songs.filter((song) => list.songIds.includes(song.id));
-
-    // Enviar la respuesta con todos los datos de cada canción
-    res.json({songs:songs, list:list});
+    res.json({ songs: songs, list: list });
   } catch (error) {
-    console.error("Error obteniendo canciones de la lista:", error);
+    console.error('Error obteniendo canciones de la lista:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
 export const deleteList = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
     const { userId, listId } = req.params;
-    console.log(userId, listId)
 
     const updatedUser = await User.findOneAndUpdate(
       { _id: userId },
-      { $pull: { lists: { id: listId } } }, // Elimina la lista con ese ID
+      { $pull: { lists: { id: listId } } },
       { new: true }
     );
 
-    if (!updatedUser) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!updatedUser)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
 
-    res.json({ message: "Lista eliminada correctamente", lists: updatedUser.lists });
+    res.json({
+      message: 'Lista eliminada correctamente',
+      lists: updatedUser.lists,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 export const removeSongFromList = async (req, res) => {
+  setCORSHeaders(res);
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   try {
-    const { userId, listId, songId } = req.params; // Ahora songId viene de los params
+    const { userId, listId, songId } = req.params;
 
-    // Buscar usuario
     let user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!user)
+      return res.status(404).json({ message: 'Usuario no encontrado' });
 
-    // Buscar la lista dentro del usuario
-    const list = user.lists.find(list => list.id === listId);
-    if (!list) return res.status(404).json({ message: "Lista no encontrada" });
+    const list = user.lists.find((list) => list.id === listId);
+    if (!list) return res.status(404).json({ message: 'Lista no encontrada' });
 
-    // Verificar si la canción está en la lista
     if (!list.songIds.includes(songId)) {
-      return res.status(400).json({ message: "La canción no está en la lista" });
+      return res
+        .status(400)
+        .json({ message: 'La canción no está en la lista' });
     }
 
-    // Eliminar la canción de la lista
-    list.songIds = list.songIds.filter(id => id !== songId);
-
-    // Notificar a MongoDB que `lists` cambió
-    user.markModified("lists");
+    list.songIds = list.songIds.filter((id) => id !== songId);
+    user.markModified('lists');
     await user.save();
 
-    console.log("✅ Canción eliminada correctamente de la lista");
-    res.status(200).json({ message: "Canción eliminada", list });
+    console.log('✅ Canción eliminada correctamente de la lista');
+    res.status(200).json({ message: 'Canción eliminada', list });
   } catch (error) {
-    console.error("❌ Error en el backend:", error.message);
+    console.error('❌ Error en el backend:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
